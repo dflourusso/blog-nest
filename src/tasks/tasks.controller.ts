@@ -8,17 +8,25 @@ import {
   Param,
   Post,
   Put,
+  Query,
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma.service';
+
+const MAX_RECORDS_PER_AGE = 5;
 
 @Controller('tasks')
 export class TasksController {
   constructor(private prisma: PrismaService) { }
 
   @Get()
-  findAll() {
-    return this.prisma.task.findMany();
+  findAll(@Query() query: Prisma.TaskFindManyArgs) {
+    return this.prisma.task.findMany({
+      skip: Number(query.skip ?? 0),
+      take: Number(
+        Math.min(query.take ?? MAX_RECORDS_PER_AGE, MAX_RECORDS_PER_AGE),
+      ),
+    });
   }
 
   @Post()
