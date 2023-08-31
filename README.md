@@ -31,6 +31,11 @@
 ```bash
 $ yarn install
 ```
+```bash
+$ cp .env.template .env
+```
+
+> Add you database credentials to `.env` 
 
 ## Running the app
 
