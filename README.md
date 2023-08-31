@@ -52,6 +52,8 @@ $ yarn run start:prod
 
 ## Test
 
+> The unit tests were not developed here because it was not part of the test. You can import the insomnia file from the `docs` directory to perform the tests on this API
+
 ```bash
 # unit tests
 $ yarn run test
