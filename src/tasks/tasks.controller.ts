@@ -12,6 +12,7 @@ import {
 } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'src/prisma.service';
+import { TaskDto } from 'src/tasks/task.dto';
 
 const MAX_RECORDS_PER_AGE = 5;
 
@@ -30,7 +31,7 @@ export class TasksController {
   }
 
   @Post()
-  create(@Body() body: Prisma.TaskCreateInput) {
+  create(@Body() body: TaskDto) {
     return this.prisma.task.create({ data: body });
   }
 
@@ -44,7 +45,7 @@ export class TasksController {
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() data: Prisma.TaskUpdateInput) {
+  update(@Param('id') id: string, @Body() data: TaskDto) {
     return this.prisma.task.update({
       where: {
         id: +id,
