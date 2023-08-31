@@ -6,73 +6,51 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  ParseIntPipe,
   Post,
   Put,
   Query,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
-import { DefaultLogger } from 'src/Default.logger';
 import { PrismaService } from 'src/prisma.service';
+import { RequestLogger } from 'src/request.logger';
+import { QueryDto } from 'src/tasks/query.dto';
 import { TaskDto } from 'src/tasks/task.dto';
-
-const MAX_RECORDS_PER_AGE = 5;
+import { TasksService } from 'src/tasks/tasks.service';
 
 @Controller('tasks')
 export class TasksController {
   constructor(
     private prisma: PrismaService,
-    private defaultLogger: DefaultLogger,
+    private defaultLogger: RequestLogger,
+    private tasksService: TasksService,
   ) { }
 
   @Get()
-  findAll(@Query() query: Prisma.TaskFindManyArgs) {
-    this.defaultLogger.logRequest('TasksController', 'findAll', query);
-    return this.prisma.task.findMany({
-      skip: Number(query.skip ?? 0),
-      take: Number(
-        Math.min(query.take ?? MAX_RECORDS_PER_AGE, MAX_RECORDS_PER_AGE),
-      ),
-    });
+  @UsePipes(new ValidationPipe({ transform: true }))
+  findAll(@Query() query: QueryDto) {
+    return this.tasksService.fetchAll(query);
   }
 
   @Post()
   create(@Body() body: TaskDto) {
-    this.defaultLogger.logRequest('TasksController', 'create', body);
-    return this.prisma.task.create({ data: body });
+    return this.tasksService.create(body);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    this.defaultLogger.logRequest('TasksController', 'findOne', { id });
-    return this.prisma.task.findFirstOrThrow({
-      where: {
-        id: +id,
-      },
-    });
-    // .catch((e) => {
-    //   throw new NotFoundException(e);
-    // });
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.tasksService.findOne(id);
   }
 
   @Put(':id')
-  update(@Param('id') id: string, @Body() data: TaskDto) {
-    this.defaultLogger.logRequest('TasksController', 'update', { id, ...data });
-    return this.prisma.task.update({
-      where: {
-        id: +id,
-      },
-      data,
-    });
+  update(@Param('id', ParseIntPipe) id: number, @Body() data: TaskDto) {
+    return this.tasksService.update(id, data);
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async delete(@Param('id') id: string) {
-    this.defaultLogger.logRequest('TasksController', 'delete', { id });
-    await this.prisma.task.delete({
-      where: {
-        id: +id,
-      },
-    });
+  async delete(@Param('id', ParseIntPipe) id: number) {
+    return this.tasksService.delete(id);
   }
 }
